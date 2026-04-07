@@ -3,7 +3,11 @@ from groq import Groq
 
 class GPTHandler:
     def __init__(self):
-        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY is not set")
+
+        self.client = Groq(api_key=api_key)
 
     def generate_response(self, chat_history, username="Founder"):
         messages = [
@@ -27,20 +31,18 @@ class GPTHandler:
 
         messages.extend(chat_history)
 
-        completion = self.client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=messages,
-            max_tokens=650,
-            temperature=0.4
-        )
+        try:
+            completion = self.client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=messages,
+                max_tokens=650,
+                temperature=0.4
+            )
 
-        raw_response = completion.choices[0].message.content.strip()
+            raw_response = completion.choices[0].message.content.strip()
+            clean_response = raw_response.replace("*", "").replace("#", "")
 
-        clean_response = (
-            raw_response
-            .replace("**", "")
-            .replace("*", "")
-            .replace("##", "")
-        )
+            return clean_response
 
-        return clean_response
+        except Exception as e:
+            return f"Error generating response: {str(e)}"
