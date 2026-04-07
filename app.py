@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from nlp.gpt_handler import GPTHandler
+from gpt_handler import GPTHandler   # ✅ FIXED IMPORT
 
 app = Flask(__name__)
 CORS(app)
 
 gpt = GPTHandler()
 
-# 🔹 Global chat memory (for demo / viva)
+# 🔹 Global chat memory
 chat_history = []
 
 @app.route("/")
@@ -16,7 +16,7 @@ def home():
 
 @app.route("/ui")
 def ui():
-    return render_template("chat.html")
+    return render_template("chat.html")  # ✅ ensure templates/chat.html exists
 
 @app.route("/chatbot", methods=["POST"])
 def chatbot():
@@ -29,16 +29,16 @@ def chatbot():
         return jsonify({"response": "Please ask a question."})
 
     try:
-        # 1️⃣ Add user message to memory
+        # Add user message
         chat_history.append({
             "role": "user",
             "content": user_message
         })
 
-        # 2️⃣ Generate response USING MEMORY
+        # Generate response
         response = gpt.generate_response(chat_history)
 
-        # 3️⃣ Add bot response to memory
+        # Add bot response
         chat_history.append({
             "role": "assistant",
             "content": response
@@ -49,5 +49,6 @@ def chatbot():
     except Exception as e:
         return jsonify({"response": f"Server error: {str(e)}"})
 
+# ❌ REMOVE this for Vercel deployment
 if __name__ == "__main__":
-    app.run(debug=True)
+     app.run(debug=True)
